@@ -70,3 +70,42 @@ def clarification_node(state: AgentState):
     return {
         "clarification_question": clarification_question
     }
+
+def sql_generator_node(state: AgentState):
+
+    question = state.get(
+        "clarified_question"
+    ) or state["question"]
+
+
+    with open(
+        "prompts/sql_generator.txt",
+        "r",
+        encoding="utf-8"
+    ) as file:
+
+        template = file.read()
+
+
+    prompt = template.format(
+        question=question
+    )
+
+
+    response = llm.invoke(prompt)
+
+    sql_query = response.content.strip()
+
+
+    sql_attempts = state.get(
+        "sql_attempts",
+        []
+    )
+
+    sql_attempts.append(sql_query)
+
+
+    return {
+        "sql_query": sql_query,
+        "sql_attempts": sql_attempts
+    }
