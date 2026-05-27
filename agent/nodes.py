@@ -476,4 +476,66 @@ def response_composer_node(state: AgentState):
         "final_response": response
     }
 
+def memory_node(state: AgentState):
+
+    question = state["question"]
+
+
+    context = state.get(
+        "follow_up_context",
+        {}
+    )
+
+
+    countries = [
+        "Germany",
+        "France",
+        "India",
+        "China",
+        "United States",
+        "Japan",
+        "Brazil",
+        "Canada"
+    ]
+
+
+    metrics = {
+        "gdp": "gdp_current_usd",
+        "growth": "gdp_growth_pct",
+        "population": "population",
+        "life expectancy": "life_expectancy",
+        "unemployment": "unemployment_pct",
+        "health": "health_expenditure_pct_gdp"
+    }
+
+
+    for country in countries:
+
+        if country.lower() in question.lower():
+
+            context["country"] = country
+
+
+    for keyword, metric in metrics.items():
+
+        if keyword in question.lower():
+
+            context["metric"] = metric
+
+
+    words = question.split()
+
+    for word in words:
+
+        cleaned_word = word.replace("?", "").replace(",", "")
+
+        if cleaned_word.isdigit() and len(cleaned_word) == 4:
+
+            context["year"] = cleaned_word
+
+
+    return {
+        "follow_up_context": context
+    }
+
 
