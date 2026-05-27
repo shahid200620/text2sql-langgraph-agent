@@ -184,3 +184,101 @@ def sql_executor_node(state: AgentState):
             "error_message": str(error)
         }
 
+def self_correction_node(state: AgentState):
+
+    question = state["question"]
+
+    failed_query = state["sql_query"]
+
+    error_message = state["error_message"]
+
+    retry_count = state.get(
+        "retry_count",
+        0
+    )
+
+
+    prompt = f"""
+    You are a SQLite query correction system.
+
+    The previous SQL query failed.
+
+    Fix the query using the database schema
+    and the error message.
+
+    Return ONLY corrected SQL.
+
+    DATABASE SCHEMA
+
+    Table: indicators
+
+    Columns:
+    - country
+    - date
+    - gdp_current_usd
+    - gdp_per_capita_usd
+    - gdp_growth_pct
+    - population
+    - health_expenditure_pct_gdp
+    - life_expectancy
+    - co2_emissions_per_capita
+    - unemployment_pct
+
+    Table: country_metadata
+
+    Columns:
+    - country_code
+    - country_name
+    - region
+    - income_group
+    - lending_type
+
+    RULES:
+    - Never use SELECT *
+    - Always use LIMIT 20
+    - Return ONLY SQL
+    - No markdown
+
+    USER QUESTION:
+    {question}
+
+    FAILED SQL:
+    {failed_query}
+
+    ERROR:
+    {error_message}
+    """
+
+
+    response = llm.invoke(prompt)
+
+    corrected_sql = response.content.strip()
+
+
+    corrected_sql = corrected_sql.replace(
+        "```sql",
+        ""
+    )
+
+    corrected_sql = corrected_sql.replace(
+        "```",
+        ""
+    )
+
+    corrected_sql = corrected_sql.strip()
+
+
+    sql_attempts = state.get(
+        "sql_attempts",
+        []
+    )
+
+    sql_attempts.append(corrected_sql)
+
+
+    return {
+        "sql_query": corrected_sql,
+        "sql_attempts": sql_attempts,
+        "retry_count": retry_count + 1
+    }
+
