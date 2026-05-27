@@ -346,3 +346,61 @@ def interpreter_node(state: AgentState):
         "interpretation": interpretation
     }
 
+def chart_generator_node(state: AgentState):
+
+    question = state["question"]
+
+    results = state["execution_result"]
+
+
+    prompt = f"""
+    You are a chart recommendation assistant.
+
+    Based on the user question and SQL results,
+    generate a chart specification.
+
+    Return ONLY a Python dictionary.
+
+    Allowed chart types:
+    - bar
+    - line
+    - scatter
+    - pie
+
+    Include:
+    - chart_type
+    - x_axis
+    - y_axis
+    - title
+
+    User Question:
+    {question}
+
+    SQL Results:
+    {results}
+    """
+
+
+    response = llm.invoke(prompt)
+
+    content = response.content.strip()
+
+
+    try:
+
+        chart_spec = eval(content)
+
+    except Exception:
+
+        chart_spec = {
+            "chart_type": "bar",
+            "x_axis": "country",
+            "y_axis": "value",
+            "title": "Data Visualization"
+        }
+
+
+    return {
+        "chart_spec": chart_spec
+    }
+
