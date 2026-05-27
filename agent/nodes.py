@@ -1,3 +1,5 @@
+from agent.prompt_loader import load_prompt
+
 from agent.utils import llm
 
 from agent.state import AgentState
@@ -8,64 +10,67 @@ def ambiguity_checker_node(state: AgentState):
     question = state["question"].lower()
 
 
-    vague_words = [
-        "economy",
-        "development",
-        "progress",
-        "performance",
-        "situation",
+    countries = [
+        "germany",
+        "france",
+        "india",
+        "china",
+        "japan",
+        "brazil",
+        "canada",
+        "united states"
+    ]
+
+
+    metrics = [
+        "gdp",
+        "gdp growth",
+        "population",
+        "health",
+        "life expectancy",
+        "unemployment",
         "growth"
     ]
 
 
     has_country = any(
         country in question
-        for country in [
-            "germany",
-            "france",
-            "india",
-            "china",
-            "japan",
-            "brazil",
-            "canada",
-            "united states"
-        ]
-    )
-
-
-    has_year = any(
-        word.isdigit() and len(word) == 4
-        for word in question.split()
+        for country in countries
     )
 
 
     has_metric = any(
         metric in question
-        for metric in [
-            "gdp",
-            "population",
-            "health",
-            "life expectancy",
-            "unemployment",
-            "growth"
-        ]
+        for metric in metrics
     )
 
 
-    is_vague = any(
-        vague in question
-        for vague in vague_words
+    has_year = any(
+        word.replace("?", "").isdigit()
+        and len(word.replace("?", "")) == 4
+        for word in question.split()
     )
 
 
     is_ambiguous = (
-        is_vague and
-        (
-            not has_country
-            or not has_year
-            or not has_metric
-        )
+        not has_country
+        or not has_metric
+        or not has_year
     )
+
+
+    vague_questions = [
+        "how is the economy doing",
+        "tell me about development",
+        "show economic performance"
+    ]
+
+
+    if any(
+        vague in question
+        for vague in vague_questions
+    ):
+        is_ambiguous = True
 
 
     return {
@@ -116,13 +121,9 @@ def sql_generator_node(state: AgentState):
     ) or state["question"]
 
 
-    with open(
-        "prompts/sql_generator.txt",
-        "r",
-        encoding="utf-8"
-    ) as file:
-
-        template = file.read()
+    template = load_prompt(
+        "text-to-sql-generator"
+    )
 
 
     prompt = template.format(
@@ -360,13 +361,9 @@ def interpreter_node(state: AgentState):
     result = state["execution_result"]
 
 
-    with open(
-        "prompts/interpreter.txt",
-        "r",
-        encoding="utf-8"
-    ) as file:
-
-        template = file.read()
+    template = load_prompt(
+        "result-interpreter"
+    )
 
 
     prompt = template.format(

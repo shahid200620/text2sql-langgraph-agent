@@ -1,0 +1,14 @@
+Determine whether the user's question is ambiguous.
+
+A question is ambiguous if it lacks:
+- country or region
+- metric
+- year or time period
+
+Return ONLY:
+CLEAR
+or
+AMBIGUOUS
+
+User Question:
+{question}
