@@ -97,6 +97,19 @@ def sql_generator_node(state: AgentState):
     sql_query = response.content.strip()
 
 
+    sql_query = sql_query.replace(
+        "```sql",
+        ""
+    )
+
+    sql_query = sql_query.replace(
+        "```",
+        ""
+    )
+
+    sql_query = sql_query.strip()
+
+
     sql_attempts = state.get(
         "sql_attempts",
         []
@@ -109,3 +122,65 @@ def sql_generator_node(state: AgentState):
         "sql_query": sql_query,
         "sql_attempts": sql_attempts
     }
+import sqlite3
+
+
+def sql_executor_node(state: AgentState):
+
+    sql_query = state["sql_query"]
+
+
+    try:
+
+        conn = sqlite3.connect(
+            "worldbank.db"
+        )
+
+        cursor = conn.cursor()
+
+
+        cursor.execute(sql_query)
+
+
+        columns = [
+            description[0]
+            for description in cursor.description
+        ]
+
+
+        rows = cursor.fetchall()
+
+
+        conn.close()
+
+
+        results = []
+
+        for row in rows:
+
+            row_data = {}
+
+            for column, value in zip(columns, row):
+                row_data[column] = value
+
+            results.append(row_data)
+
+
+        is_empty = len(results) == 0
+
+
+        return {
+            "execution_result": results,
+            "is_empty_result": is_empty,
+            "error_message": ""
+        }
+
+
+    except Exception as error:
+
+        return {
+            "execution_result": [],
+            "is_empty_result": False,
+            "error_message": str(error)
+        }
+
