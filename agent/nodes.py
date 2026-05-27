@@ -348,59 +348,132 @@ def interpreter_node(state: AgentState):
 
 def chart_generator_node(state: AgentState):
 
-    question = state["question"]
+    question = state["question"].lower()
 
     results = state["execution_result"]
 
 
-    prompt = f"""
-    You are a chart recommendation assistant.
+    if "over time" in question or "trend" in question:
 
-    Based on the user question and SQL results,
-    generate a chart specification.
-
-    Return ONLY a Python dictionary.
-
-    Allowed chart types:
-    - bar
-    - line
-    - scatter
-    - pie
-
-    Include:
-    - chart_type
-    - x_axis
-    - y_axis
-    - title
-
-    User Question:
-    {question}
-
-    SQL Results:
-    {results}
-    """
+        chart_spec = {
+            "chart_type": "line",
+            "x_axis": "date",
+            "y_axis": "value",
+            "title": "Trend Over Time"
+        }
 
 
-    response = llm.invoke(prompt)
+    elif "correlation" in question or "relationship" in question:
 
-    content = response.content.strip()
+        chart_spec = {
+            "chart_type": "scatter",
+            "x_axis": "x",
+            "y_axis": "y",
+            "title": "Correlation Analysis"
+        }
 
 
-    try:
-
-        chart_spec = eval(content)
-
-    except Exception:
+    elif "top" in question or "compare" in question:
 
         chart_spec = {
             "chart_type": "bar",
             "x_axis": "country",
             "y_axis": "value",
-            "title": "Data Visualization"
+            "title": "Comparison Chart"
         }
+
+
+    else:
+
+        prompt = f"""
+        You are a chart recommendation assistant.
+
+        Based on the user question and SQL results,
+        generate a chart specification.
+
+        Return ONLY a Python dictionary.
+
+        Allowed chart types:
+        - bar
+        - line
+        - scatter
+        - pie
+
+        Include:
+        - chart_type
+        - x_axis
+        - y_axis
+        - title
+
+        User Question:
+        {question}
+
+        SQL Results:
+        {results}
+        """
+
+
+        response = llm.invoke(prompt)
+
+        content = response.content.strip()
+
+
+        try:
+
+            chart_spec = eval(content)
+
+        except Exception:
+
+            chart_spec = {
+                "chart_type": "bar",
+                "x_axis": "country",
+                "y_axis": "value",
+                "title": "Data Visualization"
+            }
 
 
     return {
         "chart_spec": chart_spec
     }
+
+def response_composer_node(state: AgentState):
+
+    interpretation = state.get(
+        "interpretation",
+        ""
+    )
+
+    chart_spec = state.get(
+        "chart_spec",
+        {}
+    )
+
+
+    response = interpretation
+
+
+    if chart_spec:
+
+        chart_type = chart_spec.get(
+            "chart_type",
+            "chart"
+        )
+
+        title = chart_spec.get(
+            "title",
+            "Data Visualization"
+        )
+
+
+        response += (
+            f"\n\nSuggested Visualization: "
+            f"{chart_type.title()} Chart"
+            f" - {title}"
+        )
+
+
+    return {
+        "final_response": response
+    }
+
 
