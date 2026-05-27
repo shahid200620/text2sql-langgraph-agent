@@ -315,3 +315,34 @@ def alternative_suggester_node(state: AgentState):
         "interpretation": suggestion
     }
 
+def interpreter_node(state: AgentState):
+
+    question = state["question"]
+
+    result = state["execution_result"]
+
+
+    with open(
+        "prompts/interpreter.txt",
+        "r",
+        encoding="utf-8"
+    ) as file:
+
+        template = file.read()
+
+
+    prompt = template.format(
+        question=question,
+        result=result
+    )
+
+
+    response = llm.invoke(prompt)
+
+    interpretation = response.content.strip()
+
+
+    return {
+        "interpretation": interpretation
+    }
+
