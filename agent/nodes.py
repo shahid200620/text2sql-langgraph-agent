@@ -5,42 +5,74 @@ from agent.state import AgentState
 
 def ambiguity_checker_node(state: AgentState):
 
-    question = state["question"]
+    question = state["question"].lower()
 
 
-    prompt = f"""
-    You are an ambiguity detection system.
-
-    Determine whether the following user question
-    is ambiguous for SQL querying.
-
-    A question is ambiguous if it is missing:
-    - a country or region
-    - a metric or indicator
-    - a relevant time period
-
-    Return ONLY:
-    CLEAR
-    or
-    AMBIGUOUS
-
-    User Question:
-    {question}
-    """
+    vague_words = [
+        "economy",
+        "development",
+        "progress",
+        "performance",
+        "situation",
+        "growth"
+    ]
 
 
-    response = llm.invoke(prompt)
+    has_country = any(
+        country in question
+        for country in [
+            "germany",
+            "france",
+            "india",
+            "china",
+            "japan",
+            "brazil",
+            "canada",
+            "united states"
+        ]
+    )
 
-    result = response.content.strip().upper()
+
+    has_year = any(
+        word.isdigit() and len(word) == 4
+        for word in question.split()
+    )
 
 
-    is_ambiguous = result == "AMBIGUOUS"
+    has_metric = any(
+        metric in question
+        for metric in [
+            "gdp",
+            "population",
+            "health",
+            "life expectancy",
+            "unemployment",
+            "growth"
+        ]
+    )
+
+
+    is_vague = any(
+        vague in question
+        for vague in vague_words
+    )
+
+
+    is_ambiguous = (
+        is_vague and
+        (
+            not has_country
+            or not has_year
+            or not has_metric
+        )
+    )
 
 
     return {
         "is_ambiguous": is_ambiguous,
         "clarification_needed": is_ambiguous
     }
+
 
 def clarification_node(state: AgentState):
 

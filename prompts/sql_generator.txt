@@ -43,6 +43,7 @@ RULES:
 - Use proper SQLite syntax
 - Return ONLY SQL
 - No markdown
+- Never generate forecast or prediction queries
 - No explanations
 - No comments
 
