@@ -41,3 +41,32 @@ def ambiguity_checker_node(state: AgentState):
         "is_ambiguous": is_ambiguous,
         "clarification_needed": is_ambiguous
     }
+
+def clarification_node(state: AgentState):
+
+    question = state["question"]
+
+
+    prompt = f"""
+    You are a clarification assistant.
+
+    The user's question is too ambiguous
+    for generating a SQL query.
+
+    Ask ONE short and focused clarification question.
+
+    Keep it natural and concise.
+
+    User Question:
+    {question}
+    """
+
+
+    response = llm.invoke(prompt)
+
+    clarification_question = response.content.strip()
+
+
+    return {
+        "clarification_question": clarification_question
+    }
