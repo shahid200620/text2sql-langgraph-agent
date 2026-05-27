@@ -282,3 +282,36 @@ def self_correction_node(state: AgentState):
         "retry_count": retry_count + 1
     }
 
+def alternative_suggester_node(state: AgentState):
+
+    question = state["question"]
+
+
+    prompt = f"""
+    You are a helpful data assistant.
+
+    The SQL query returned no results.
+
+    Suggest a useful alternative.
+
+    Possible suggestions:
+    - nearest available year
+    - checking another country
+    - trying a broader query
+
+    Keep the response short and natural.
+
+    User Question:
+    {question}
+    """
+
+
+    response = llm.invoke(prompt)
+
+    suggestion = response.content.strip()
+
+
+    return {
+        "interpretation": suggestion
+    }
+
