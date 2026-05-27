@@ -80,14 +80,13 @@ def clarification_node(state: AgentState):
 
 
     prompt = f"""
-    You are a clarification assistant.
+    Ask one short clarification question.
 
-    The user's question is too ambiguous
-    for generating a SQL query.
+    Do not explain anything.
+    Do not add introductions.
+    Do not use markdown.
 
-    Ask ONE short and focused clarification question.
-
-    Keep it natural and concise.
+    Keep it under 20 words.
 
     User Question:
     {question}
@@ -97,6 +96,13 @@ def clarification_node(state: AgentState):
     response = llm.invoke(prompt)
 
     clarification_question = response.content.strip()
+
+
+    clarification_question = (
+        clarification_question
+        .replace("*", "")
+        .replace('"', "")
+    )
 
 
     return {
