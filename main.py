@@ -30,7 +30,20 @@ while True:
     }
 
 
-    result = graph.invoke(initial_state)
+    metadata = {
+        "question": question,
+        "retry_count": 0,
+        "chart_type": ""
+    }
+
+
+    result = graph.invoke(
+        initial_state,
+        config={
+            "metadata": metadata,
+            "tags": ["text2sql-agent"]
+        }
+    )
 
 
     if result.get("clarification_question"):
@@ -41,6 +54,27 @@ while True:
         )
 
     else:
+
+        tag = "success"
+
+
+        if result.get("error_message"):
+
+            if result.get("retry_count", 0) >= 3:
+                tag = "max_retries_reached"
+
+            else:
+                tag = "self_corrected"
+
+
+        elif result.get("is_empty_result"):
+
+            tag = "empty_result"
+
+
+        print(
+            f"\nRun Tag: {tag}"
+        )
 
         print(
             "\nResponse:",

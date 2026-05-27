@@ -27,6 +27,7 @@ def ambiguity_checker_node(state: AgentState):
         "gdp growth",
         "population",
         "health",
+	"population",
         "life expectancy",
         "unemployment",
         "growth"
@@ -51,11 +52,19 @@ def ambiguity_checker_node(state: AgentState):
         for word in question.split()
     )
 
+    top_query = (
+        "top" in question
+        and "population" in question
+    )
+
 
     is_ambiguous = (
-        not has_country
-        or not has_metric
-        or not has_year
+        (
+            not has_country
+            or not has_metric
+            or not has_year
+        )
+        and not top_query
     )
 
 
