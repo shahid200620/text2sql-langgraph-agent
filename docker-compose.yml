@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+
+  text2sql-agent:
+
+    build: .
+
+    container_name: text2sql-agent
+
+    env_file:
+      - .env
+
+    volumes:
+      - .:/app
+
+    command: python main.py
